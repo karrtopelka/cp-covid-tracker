@@ -17,7 +17,7 @@ const options = {
     mode: "index",
     intersect: false,
     callbacks: {
-      label: function (tooltipItem, data) {
+      label: function (tooltipItem) {
         return numeral(tooltipItem.value).format("+0,0");
       },
     },
@@ -39,7 +39,7 @@ const options = {
         },
         ticks: {
           // Include a dollar sign in the ticks
-          callback: function (value, index, values) {
+          callback: function (value) {
             return numeral(value).format("0a");
           },
         },
@@ -48,41 +48,58 @@ const options = {
   },
 };
 
-const buildChartData = (data, casesType) => {
+const buildChartData = (country = "worldwide", data, casesType) => {
   const chartData = [];
   let lastDataPoint;
+  if (data.message) {
+    return chartData;
+  }
 
-  for (let date in data[casesType]) {
-    if (lastDataPoint) {
-      const newDataPoint = {
-        x: date,
-        y: data[casesType][date] - lastDataPoint,
-      };
-      chartData.push(newDataPoint);
+  if (country === "worldwide") {
+    for (let date in data[casesType]) {
+      if (lastDataPoint) {
+        const newDataPoint = {
+          x: date,
+          y: data[casesType][date] - lastDataPoint,
+        };
+        chartData.push(newDataPoint);
+      }
+      lastDataPoint = data[casesType][date];
     }
-    lastDataPoint = data[casesType][date];
+  } else {
+    for (let date in data["timeline"][casesType]) {
+      if (lastDataPoint) {
+        const newDataPoint = {
+          x: date,
+          y: data["timeline"][casesType][date] - lastDataPoint,
+        };
+        chartData.push(newDataPoint);
+      }
+      lastDataPoint = data["timeline"][casesType][date];
+    }
   }
   return chartData;
 };
 
-function LineGraph({ casesType = "cases" }) {
+function LineGraph({ graphCountry = "worldwide", casesType = "cases" }) {
   const [data, setData] = useState({});
 
   useEffect(() => {
+    const url =
+      graphCountry === "worldwide"
+        ? "https://disease.sh/v3/covid-19/historical/all?lastdays=60"
+        : `https://disease.sh/v3/covid-19/historical/${graphCountry}?lastdays=60`;
     const fetchData = async () => {
-      await fetch("https://disease.sh/v3/covid-19/historical/all?lastdays=60")
+      await fetch(url)
         .then((res) => res.json())
         .then((data) => {
-          console.table(data);
-          let chartData = buildChartData(data, casesType);
+          let chartData = buildChartData(graphCountry, data, casesType);
           setData(chartData);
         });
     };
 
     fetchData();
-  }, [casesType]);
-
-  console.log(casesType);
+  }, [graphCountry, casesType]);
   return (
     <div style={{ height: "220px", marginTop: "10px" }}>
       {data?.length > 0 && (
