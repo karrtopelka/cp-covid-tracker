@@ -146,16 +146,19 @@ function App() {
         />
       </div>
       <Card className="app__right">
-        <CardContent>
+        <CardContent className="app__rightContent">
           {/* Table */}
-          <h3>Live Cases by Country</h3>
-          <Table countries={tableData} />
-
+          <div className="app__table">
+            <h3>Live Cases by Country</h3>
+            <Table countries={tableData} />
+          </div>
           {/* Graph */}
-          <h3>
-            {countryName} new {casesType}
-          </h3>
-          <LineGraph graphCountry={country} casesType={casesType} />
+          <div className="app_graph">
+            <h3>
+              {countryName} new {casesType}
+            </h3>
+            <LineGraph graphCountry={country} casesType={casesType} />
+          </div>
         </CardContent>
       </Card>
     </div>
